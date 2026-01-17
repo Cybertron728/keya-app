@@ -92,17 +92,21 @@ Thank you`;
         return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
     };
 
-    const generateBody = (templateStr, candidate, commonData) => {
+    const generateBody = (templateStr, candidate, commonData, personalizeByName) => {
         if (!candidate) return '';
         const name = candidate.name || '';
-        const greetingName = name.trim().length > 0 ? ' ' + name : '';
+        const greetingName = (personalizeByName && name.trim().length > 0) ? ' ' + name : '';
         const pos = candidate.interviewPosition || commonData.position;
         const date = formatDisplayDate(candidate.interviewDate || commonData.date);
         const time = formatDisplayTime(candidate.interviewTime || commonData.time);
 
         let body = templateStr || DEFAULT_TEMPLATE;
         try {
-            const hrs = new Date().getHours();
+            // Use Dubai Time (Asia/Dubai)
+            const dubaiDateStr = new Date().toLocaleString("en-US", { timeZone: "Asia/Dubai" });
+            const dubaiDate = new Date(dubaiDateStr);
+            const hrs = dubaiDate.getHours();
+
             let greeting = 'Good morning';
             if (hrs >= 12 && hrs < 17) greeting = 'Good afternoon';
             else if (hrs >= 17) greeting = 'Good evening';
@@ -333,6 +337,7 @@ Thank you`;
         const [pdfLibReady, setPdfLibReady] = useState(false);
         const [tesseractReady, setTesseractReady] = useState(false);
         const [darkMode, setDarkMode] = useState(() => localStorage.getItem('rt_dark_mode') === 'true');
+        const [personalizeByName, setPersonalizeByName] = useState(() => localStorage.getItem('rt_personalize_by_name') === 'true');
         const [statusFilter, setStatusFilter] = useState('all');
         const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
         const [isDragging, setIsDragging] = useState(false);
@@ -451,7 +456,8 @@ Thank you`;
             localStorage.setItem('rt_send_method', sendMethod);
             localStorage.setItem('rt_ocr_api_key', ocrApiKey);
             localStorage.setItem('rt_dark_mode', darkMode);
-        }, [webhookUrl, sendMethod, ocrApiKey, darkMode]);
+            localStorage.setItem('rt_personalize_by_name', personalizeByName);
+        }, [webhookUrl, sendMethod, ocrApiKey, darkMode, personalizeByName]);
 
         // Dark mode effect
         useEffect(() => {
@@ -691,7 +697,7 @@ Thank you`;
                 if (stopProcessingRef.current) break;
                 const c = group.items[i];
                 setBulkSendingProgress({ current: i + 1, total: group.items.length });
-                const body = generateBody(group.template, c, commonData);
+                const body = generateBody(group.template, c, commonData, personalizeByName);
 
                 if (sendMethod === 'webhook') {
                     await new Promise(r => setTimeout(r, 1500));
@@ -863,6 +869,25 @@ Thank you`;
                                     onChange: e => setSlotInterval(parseInt(e.target.value) || 1),
                                     className: 'w-full bg-slate-50 dark:bg-slate-900 border-none rounded-2xl p-4 text-sm font-bold text-center'
                                 })
+                            )
+                        ),
+                        h('div', { className: 'space-y-6 mt-8' },
+                            h('h3', { className: 'font-black text-xs text-slate-400 uppercase tracking-widest' }, 'Personalization'),
+                            h('div', { className: 'flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700/50' },
+                                h('div', {},
+                                    h('span', { className: 'text-xs font-bold text-slate-700 dark:text-slate-200 block' }, 'Greeting Style'),
+                                    h('span', { className: 'text-[10px] text-slate-400' }, personalizeByName ? 'Currently: Good Morning Alex' : 'Currently: Good Morning')
+                                ),
+                                h('div', { className: 'flex gap-1 p-1 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700' },
+                                    h('button', {
+                                        onClick: () => setPersonalizeByName(false),
+                                        className: `px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${!personalizeByName ? 'bg-slate-900 text-white shadow-lg shadow-slate-200 dark:shadow-none' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`
+                                    }, 'Generic'),
+                                    h('button', {
+                                        onClick: () => setPersonalizeByName(true),
+                                        className: `px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${personalizeByName ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 dark:shadow-none' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`
+                                    }, 'Personalized')
+                                )
                             )
                         )
                     )
@@ -1078,7 +1103,7 @@ Thank you`;
                                     ),
                                     h('div', { className: 'prose dark:prose-invert max-w-none' },
                                         h('div', { className: 'text-sm text-slate-600 dark:text-slate-300 whitespace-pre-wrap font-sans leading-relaxed' },
-                                            generateBody(template, { name: 'Alex Johnson' }, { ...commonData, position: commonData.position || 'Senior Designer', date: formatDisplayDate(commonData.date || new Date().toISOString().split('T')[0]), time: commonData.time })
+                                            generateBody(template, { name: 'Alex Johnson' }, { ...commonData, position: commonData.position || 'Senior Designer', date: formatDisplayDate(commonData.date || new Date().toISOString().split('T')[0]), time: commonData.time }, personalizeByName)
                                         )
                                     )
                                 )
@@ -1420,10 +1445,10 @@ Thank you`;
             // New Floating Action Bar - Chip Style Design
             selectedIds.size > 0 && !showSafetyModal && h('div', {
                 className: 'floating-bar-enter',
-                style: { position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', zIndex: 40 }
+                style: { position: 'fixed', bottom: '32px', left: '50%', transform: 'translateX(-50%)', zIndex: 40 }
             },
                 h('div', {
-                    className: 'flex items-center gap-3 bg-slate-800/95 backdrop-blur-sm rounded-2xl px-4 py-3 shadow-2xl shadow-black/50 border border-slate-700'
+                    className: 'flex items-center gap-3 bg-slate-900/70 dark:bg-slate-950/70 backdrop-blur-xl rounded-2xl px-5 py-4 shadow-2xl shadow-blue-900/20 border border-white/10 ring-1 ring-black/5'
                 },
                     // Selection Badge
                     h('div', { className: 'flex items-center gap-2 px-3 py-1.5 bg-blue-500/20 rounded-full' },
@@ -1554,7 +1579,7 @@ Thank you`;
                         ' Message Detail'
                     ),
                     h('div', { className: 'bg-slate-50 p-10 rounded-[2rem] border border-slate-100 text-sm font-mono whitespace-pre-wrap leading-relaxed shadow-inner max-h-[55vh] overflow-y-auto custom-scrollbar' },
-                        generateBody(template, candidates.find(c => c.id === previewCandidateId) || {}, commonData)
+                        generateBody(template, candidates.find(c => c.id === previewCandidateId) || {}, commonData, personalizeByName)
                     ),
                     h('div', { className: 'mt-10 border-t border-slate-100 pt-8 flex justify-end' },
                         h('button', {
