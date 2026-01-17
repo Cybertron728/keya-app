@@ -35,7 +35,8 @@ const createWindow = () => {
   });
 
   // Open the DevTools to see errors
-  mainWindow.webContents.openDevTools();
+  // Open the DevTools to see errors
+  // mainWindow.webContents.openDevTools();
 };
 
 // This method will be called when Electron has finished
