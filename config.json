@@ -1,0 +1,24 @@
+{
+    "app": {
+        "name": "HR Helper - Bakerist",
+        "version": "1.0.0",
+        "company": "Bakerist Restaurant DHM"
+    },
+    "defaults": {
+        "webhookUrl": "https://script.google.com/macros/s/AKfycbwgUoX3W-XSfRdTEylLedV7LDJ4umY0e78H9iWmEU3bauD_HL_UeOWHqAHgObnfXMrU/exec",
+        "sendMethod": "webhook",
+        "position": "SOUS CHEF",
+        "maxCapacity": 5,
+        "subjectLine": "Interview Invitation"
+    },
+    "template": {
+        "default": "{greeting}{name},\nThis is Keya - Head of HR, Bakerist Restaurant DHM,\nWe have received your CV and it seems to be quite impressive, we would like to know more about you, I would like to invite you for an in person interview & trial day tomorrow.\nDate : {date}.\nBakerist DHM at {time}.\nPosition - {position}\nLocation:\nhttps://maps.app.goo.gl/LKryWeFSdTbBVTae6?g_st=ipc\nPlease review our menu and try to understand our signature options:\nhttps://menu.apetitomenu.com/BakeristDubaiHillsMallMenu/en/menu/58f34b\nThank you"
+    },
+    "features": {
+        "pdfScanning": true,
+        "ocrFallback": true,
+        "bulkSending": true,
+        "autoScheduling": true,
+        "capacityManagement": true
+    }
+}

@@ -1,0 +1,3 @@
+@echo off
+echo Starting HR Helper Application...
+npm start
